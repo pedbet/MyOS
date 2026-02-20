@@ -49,73 +49,52 @@ class Storage {
                 // Create object stores
                 Object.values(STORES).forEach(storeName => {
                     if (!db.objectStoreNames.contains(storeName)) {
-                        db.createObjectStore(storeName, { keyPath: 'id' });
+                        const store = db.createObjectStore(storeName, { keyPath: 'id' });
+                        
+                        // Create indexes during store creation
+                        switch (storeName) {
+                            case STORES.checkins:
+                                store.createIndex('deleted_at', 'deleted_at');
+                                store.createIndex('labels', 'labels', { multiEntry: true });
+                                break;
+                            case STORES.tasks:
+                                store.createIndex('status', 'status');
+                                store.createIndex('created_at', 'created_at');
+                                store.createIndex('due_at', 'due_at');
+                                store.createIndex('deleted_at', 'deleted_at');
+                                store.createIndex('labels', 'labels', { multiEntry: true });
+                                break;
+                            case STORES.habits:
+                                store.createIndex('archived_at', 'archived_at');
+                                store.createIndex('deleted_at', 'deleted_at');
+                                store.createIndex('labels', 'labels', { multiEntry: true });
+                                break;
+                            case STORES.habitLogs:
+                                store.createIndex('habit_id', 'habit_id');
+                                store.createIndex('date', 'date');
+                                store.createIndex('deleted_at', 'deleted_at');
+                                break;
+                            case STORES.prayers:
+                                store.createIndex('deleted_at', 'deleted_at');
+                                store.createIndex('labels', 'labels', { multiEntry: true });
+                                break;
+                            case STORES.prayerLogs:
+                                store.createIndex('prayer_id', 'prayer_id');
+                                store.createIndex('date', 'date');
+                                store.createIndex('deleted_at', 'deleted_at');
+                                break;
+                            case STORES.journal:
+                                store.createIndex('date', 'date');
+                                store.createIndex('deleted_at', 'deleted_at');
+                                break;
+                            case STORES.actionLogs:
+                                store.createIndex('entity_type', 'entity_type');
+                                store.createIndex('entity_id', 'entity_id');
+                                store.createIndex('timestamp', 'timestamp');
+                                break;
+                        }
                     }
                 });
-
-                // Create indexes for better query performance
-                const checkinsStore = db.objectStoreNames.contains(STORES.checkins) &&
-                    db.objectStore(STORES.checkins);
-                if (checkinsStore) {
-                    checkinsStore.createIndex('deleted_at', 'deleted_at');
-                    checkinsStore.createIndex('labels', 'labels', { multiEntry: true });
-                }
-
-                const tasksStore = db.objectStoreNames.contains(STORES.tasks) &&
-                    db.objectStore(STORES.tasks);
-                if (tasksStore) {
-                    tasksStore.createIndex('status', 'status');
-                    tasksStore.createIndex('created_at', 'created_at');
-                    tasksStore.createIndex('due_at', 'due_at');
-                    tasksStore.createIndex('deleted_at', 'deleted_at');
-                    tasksStore.createIndex('labels', 'labels', { multiEntry: true });
-                }
-
-                const habitsStore = db.objectStoreNames.contains(STORES.habits) &&
-                    db.objectStore(STORES.habits);
-                if (habitsStore) {
-                    habitsStore.createIndex('archived_at', 'archived_at');
-                    habitsStore.createIndex('deleted_at', 'deleted_at');
-                    habitsStore.createIndex('labels', 'labels', { multiEntry: true });
-                }
-
-                const habitLogsStore = db.objectStoreNames.contains(STORES.habitLogs) &&
-                    db.objectStore(STORES.habitLogs);
-                if (habitLogsStore) {
-                    habitLogsStore.createIndex('habit_id', 'habit_id');
-                    habitLogsStore.createIndex('date', 'date');
-                    habitLogsStore.createIndex('deleted_at', 'deleted_at');
-                }
-
-                const prayersStore = db.objectStoreNames.contains(STORES.prayers) &&
-                    db.objectStore(STORES.prayers);
-                if (prayersStore) {
-                    prayersStore.createIndex('deleted_at', 'deleted_at');
-                    prayersStore.createIndex('labels', 'labels', { multiEntry: true });
-                }
-
-                const prayerLogsStore = db.objectStoreNames.contains(STORES.prayerLogs) &&
-                    db.objectStore(STORES.prayerLogs);
-                if (prayerLogsStore) {
-                    prayerLogsStore.createIndex('prayer_id', 'prayer_id');
-                    prayerLogsStore.createIndex('date', 'date');
-                    prayerLogsStore.createIndex('deleted_at', 'deleted_at');
-                }
-
-                const journalStore = db.objectStoreNames.contains(STORES.journal) &&
-                    db.objectStore(STORES.journal);
-                if (journalStore) {
-                    journalStore.createIndex('date', 'date');
-                    journalStore.createIndex('deleted_at', 'deleted_at');
-                }
-
-                const actionLogsStore = db.objectStoreNames.contains(STORES.actionLogs) &&
-                    db.objectStore(STORES.actionLogs);
-                if (actionLogsStore) {
-                    actionLogsStore.createIndex('entity_type', 'entity_type');
-                    actionLogsStore.createIndex('entity_id', 'entity_id');
-                    actionLogsStore.createIndex('timestamp', 'timestamp');
-                }
             };
         });
 
