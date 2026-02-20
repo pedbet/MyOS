@@ -234,7 +234,7 @@ const TodaySection = {
     const card = el('div', 'card');
     if (todayEntry) {
       card.innerHTML = `
-        <div class="card-title">${todayEntry.title || 'Today's Entry'}</div>
+        <div class="card-title">${todayEntry.title || "Today's Entry"}</div>
         <div class="card-meta" style="margin-top:4px;line-height:1.5;color:var(--text2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${todayEntry.body || ''}</div>
         <button class="btn-secondary" style="margin-top:10px;font-size:13px" data-edit-journal="${todayEntry.id}">Edit entry →</button>
       `;
