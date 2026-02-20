@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyOS - Personal Life OS</title>
+    <meta name="description" content="A minimalist, elegant, offline-first personal system">
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="app">
+        <header class="app-header">
+            <h1>MyOS</h1>
+            <nav class="main-nav">
+                <button data-nav="today" class="nav-btn active">Today</button>
+                <button data-nav="checkins" class="nav-btn">Check-ins</button>
+                <button data-nav="tasks" class="nav-btn">Tasks</button>
+                <button data-nav="habits" class="nav-btn">Habits</button>
+                <button data-nav="prayers" class="nav-btn">Prayers</button>
+                <button data-nav="journal" class="nav-btn">Journal</button>
+                <button data-nav="search" class="nav-btn">Search</button>
+                <button data-nav="settings" class="nav-btn">Settings</button>
+            </nav>
+        </header>
+
+        <main class="app-main">
+            <div id="today-view" class="view active">
+                <h2>Today</h2>
+                <div class="today-sections">
+                    <section id="today-checkins" class="today-section">
+                        <h3>Check-ins</h3>
+                        <div class="section-content"></div>
+                    </section>
+                    <section id="today-tasks" class="today-section">
+                        <h3>Tasks</h3>
+                        <div class="section-content"></div>
+                    </section>
+                    <section id="today-habits" class="today-section">
+                        <h3>Habits</h3>
+                        <div class="section-content"></div>
+                    </section>
+                    <section id="today-prayers" class="today-section">
+                        <h3>Prayers</h3>
+                        <div class="section-content"></div>
+                    </section>
+                    <section id="today-journal" class="today-section">
+                        <h3>Journal</h3>
+                        <div class="section-content"></div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="checkins-view" class="view">
+                <h2>Check-ins</h2>
+                <div class="view-content"></div>
+            </div>
+
+            <div id="tasks-view" class="view">
+                <h2>Tasks</h2>
+                <div class="view-content"></div>
+            </div>
+
+            <div id="habits-view" class="view">
+                <h2>Habits</h2>
+                <div class="view-content"></div>
+            </div>
+
+            <div id="prayers-view" class="view">
+                <h2>Prayers</h2>
+                <div class="view-content"></div>
+            </div>
+
+            <div id="journal-view" class="view">
+                <h2>Journal</h2>
+                <div class="view-content"></div>
+            </div>
+
+            <div id="search-view" class="view">
+                <h2>Search</h2>
+                <div class="view-content"></div>
+            </div>
+
+            <div id="settings-view" class="view">
+                <h2>Settings</h2>
+                <div class="view-content"></div>
+            </div>
+        </main>
+
+        <div id="modals" class="modals"></div>
+    </div>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('SW registered:', registration))
+                .catch(error => console.log('SW registration failed:', error));
+        }
+    </script>
+
+    <!-- App Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/models.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/views.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
