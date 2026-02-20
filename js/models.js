@@ -48,6 +48,10 @@ class BaseModel {
     toJSON() {
         const data = { ...this };
         delete data.constructor;
+        // Don't include id if it's undefined (for new records)
+        if (!data.id) {
+            delete data.id;
+        }
         return data;
     }
 }
