@@ -345,7 +345,7 @@ export class PrayerLog extends BaseModel {
 
 // Journal Entry model
 export class JournalEntry extends BaseModel {
-    static storeName = 'journal';
+    static storeName = 'journal_entries';
 
     constructor(data) {
         super(data);

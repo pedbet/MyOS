@@ -21,15 +21,14 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('SW: Caching static assets');
-                return Promise.allSettled(
-                    STATIC_ASSETS.map(asset => 
-                        cache.add(asset).catch(error => {
-                            console.warn(`SW: Failed to cache ${asset}:`, error);
-                        })
-                    )
-                );
+                return cache.addAll(STATIC_ASSETS);
             })
             .then(() => self.skipWaiting())
+            .catch(error => {
+                console.log('SW: Cache installation failed:', error);
+                // Don't fail the installation if caching fails
+                return self.skipWaiting();
+            })
     );
 });
 
