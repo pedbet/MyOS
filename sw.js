@@ -9,7 +9,9 @@ const STATIC_ASSETS = [
     '/js/models.js',
     '/js/components.js',
     '/js/views.js',
-    '/js/app.js'
+    '/js/app.js',
+    '/icons/favicon.svg',
+    '/icons/apple-touch-icon.png'
 ];
 
 // Install event - cache static assets
@@ -19,7 +21,13 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('SW: Caching static assets');
-                return cache.addAll(STATIC_ASSETS);
+                return Promise.allSettled(
+                    STATIC_ASSETS.map(asset => 
+                        cache.add(asset).catch(error => {
+                            console.warn(`SW: Failed to cache ${asset}:`, error);
+                        })
+                    )
+                );
             })
             .then(() => self.skipWaiting())
     );
