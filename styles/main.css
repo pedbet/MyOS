@@ -30,11 +30,20 @@ body {
     background-color: var(--bg-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+html {
+    min-height: 100%;
 }
 
 /* App Layout */
 #app {
     min-height: 100vh;
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
 }
@@ -61,6 +70,8 @@ body {
     gap: 0.5rem;
     overflow-x: auto;
     padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
 }
 
 .nav-btn {
@@ -74,6 +85,7 @@ body {
     font-weight: 500;
     white-space: nowrap;
     transition: var(--transition);
+    touch-action: manipulation;
 }
 
 .nav-btn:hover {
@@ -90,6 +102,7 @@ body {
 .app-main {
     flex: 1;
     padding: 1rem;
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
@@ -180,6 +193,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    touch-action: manipulation;
 }
 
 .btn-primary {
