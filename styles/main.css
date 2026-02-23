@@ -30,13 +30,22 @@ body {
     background-color: var(--bg-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    overflow: hidden;
+}
+
+html {
+    height: 100%;
 }
 
 /* App Layout */
 #app {
     min-height: 100vh;
+    min-height: 100dvh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .app-header {
@@ -61,6 +70,8 @@ body {
     gap: 0.5rem;
     overflow-x: auto;
     padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
 }
 
 .nav-btn {
@@ -74,6 +85,7 @@ body {
     font-weight: 500;
     white-space: nowrap;
     transition: var(--transition);
+    touch-action: manipulation;
 }
 
 .nav-btn:hover {
@@ -93,6 +105,9 @@ body {
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
 }
 
 /* Views */
@@ -180,6 +195,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    touch-action: manipulation;
 }
 
 .btn-primary {
