@@ -46,6 +46,7 @@ html {
     min-height: 100svh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .app-header {
@@ -106,6 +107,9 @@ html {
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
 }
 
 /* Views */
