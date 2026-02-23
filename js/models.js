@@ -376,21 +376,39 @@ export class JournalEntry extends BaseModel {
     static async findByDate(date) {
         const dateString = typeof date === 'string' ? date : dateUtils.getLocalDateString(date);
         const entries = await JournalEntry.findAll({ date: dateString });
-        return entries[0] || null;
+
+        if (entries.length <= 1) {
+            return entries[0] || null;
+        }
+
+        // Keep newest entry and soft-delete stale duplicates.
+        const sorted = entries.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        const primaryEntry = sorted[0];
+        await Promise.all(sorted.slice(1).map(entry => entry.delete(true)));
+
+        return primaryEntry;
     }
 
     static async getOrCreateForDate(date = new Date()) {
         const dateString = dateUtils.getLocalDateString(date);
         let entry = await JournalEntry.findByDate(dateString);
-        
+
         if (!entry) {
-            entry = await JournalEntry.create({
-                date: dateString,
-                title: dateUtils.isToday(date) ? "Today's Journal" : `Journal - ${dateString}`,
-                body: ''
-            });
+            try {
+                entry = await JournalEntry.create({
+                    date: dateString,
+                    title: dateUtils.isToday(date) ? "Today's Journal" : `Journal - ${dateString}`,
+                    body: ''
+                });
+            } catch (error) {
+                // Another render/request may have created today's entry first.
+                if (error?.name !== 'ConstraintError') {
+                    throw error;
+                }
+                entry = await JournalEntry.findByDate(dateString);
+            }
         }
-        
+
         return entry;
     }
 }

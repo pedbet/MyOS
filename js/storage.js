@@ -3,7 +3,7 @@
 import { stringUtils } from './utils.js';
 
 const DB_NAME = 'myos-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 // Store names
 const STORES = {
@@ -46,53 +46,57 @@ class Storage {
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
 
-                // Create object stores
+                const ensureIndex = (store, name, keyPath, options = undefined) => {
+                    if (!store.indexNames.contains(name)) {
+                        store.createIndex(name, keyPath, options);
+                    }
+                };
+
                 Object.values(STORES).forEach(storeName => {
-                    if (!db.objectStoreNames.contains(storeName)) {
-                        const store = db.createObjectStore(storeName, { keyPath: 'id' });
-                        
-                        // Create indexes during store creation
-                        switch (storeName) {
-                            case STORES.checkins:
-                                store.createIndex('deleted_at', 'deleted_at');
-                                store.createIndex('labels', 'labels', { multiEntry: true });
-                                break;
-                            case STORES.tasks:
-                                store.createIndex('status', 'status');
-                                store.createIndex('created_at', 'created_at');
-                                store.createIndex('due_at', 'due_at');
-                                store.createIndex('deleted_at', 'deleted_at');
-                                store.createIndex('labels', 'labels', { multiEntry: true });
-                                break;
-                            case STORES.habits:
-                                store.createIndex('archived_at', 'archived_at');
-                                store.createIndex('deleted_at', 'deleted_at');
-                                store.createIndex('labels', 'labels', { multiEntry: true });
-                                break;
-                            case STORES.habitLogs:
-                                store.createIndex('habit_id', 'habit_id');
-                                store.createIndex('date', 'date');
-                                store.createIndex('deleted_at', 'deleted_at');
-                                break;
-                            case STORES.prayers:
-                                store.createIndex('deleted_at', 'deleted_at');
-                                store.createIndex('labels', 'labels', { multiEntry: true });
-                                break;
-                            case STORES.prayerLogs:
-                                store.createIndex('prayer_id', 'prayer_id');
-                                store.createIndex('date', 'date');
-                                store.createIndex('deleted_at', 'deleted_at');
-                                break;
-                            case STORES.journal:
-                                store.createIndex('date', 'date');
-                                store.createIndex('deleted_at', 'deleted_at');
-                                break;
-                            case STORES.actionLogs:
-                                store.createIndex('entity_type', 'entity_type');
-                                store.createIndex('entity_id', 'entity_id');
-                                store.createIndex('timestamp', 'timestamp');
-                                break;
-                        }
+                    const store = db.objectStoreNames.contains(storeName)
+                        ? event.target.transaction.objectStore(storeName)
+                        : db.createObjectStore(storeName, { keyPath: 'id' });
+
+                    switch (storeName) {
+                        case STORES.checkins:
+                            ensureIndex(store, 'deleted_at', 'deleted_at');
+                            ensureIndex(store, 'labels', 'labels', { multiEntry: true });
+                            break;
+                        case STORES.tasks:
+                            ensureIndex(store, 'status', 'status');
+                            ensureIndex(store, 'created_at', 'created_at');
+                            ensureIndex(store, 'due_at', 'due_at');
+                            ensureIndex(store, 'deleted_at', 'deleted_at');
+                            ensureIndex(store, 'labels', 'labels', { multiEntry: true });
+                            break;
+                        case STORES.habits:
+                            ensureIndex(store, 'archived_at', 'archived_at');
+                            ensureIndex(store, 'deleted_at', 'deleted_at');
+                            ensureIndex(store, 'labels', 'labels', { multiEntry: true });
+                            break;
+                        case STORES.habitLogs:
+                            ensureIndex(store, 'habit_id', 'habit_id');
+                            ensureIndex(store, 'date', 'date');
+                            ensureIndex(store, 'deleted_at', 'deleted_at');
+                            break;
+                        case STORES.prayers:
+                            ensureIndex(store, 'deleted_at', 'deleted_at');
+                            ensureIndex(store, 'labels', 'labels', { multiEntry: true });
+                            break;
+                        case STORES.prayerLogs:
+                            ensureIndex(store, 'prayer_id', 'prayer_id');
+                            ensureIndex(store, 'date', 'date');
+                            ensureIndex(store, 'deleted_at', 'deleted_at');
+                            break;
+                        case STORES.journal:
+                            ensureIndex(store, 'date', 'date', { unique: true });
+                            ensureIndex(store, 'deleted_at', 'deleted_at');
+                            break;
+                        case STORES.actionLogs:
+                            ensureIndex(store, 'entity_type', 'entity_type');
+                            ensureIndex(store, 'entity_id', 'entity_id');
+                            ensureIndex(store, 'timestamp', 'timestamp');
+                            break;
                     }
                 });
             };

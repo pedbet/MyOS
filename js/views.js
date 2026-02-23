@@ -405,6 +405,8 @@ export class TodayView extends BaseView {
             fields,
             onSubmit: async (data) => {
                 if (journal) {
+                    journal.title = data.title;
+                    journal.body = data.body;
                     await journal.save();
                 } else {
                     await JournalEntry.create({
