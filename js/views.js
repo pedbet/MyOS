@@ -289,9 +289,11 @@ export class TodayView extends BaseView {
                 case 'add-prayer':
                     this.showAddPrayerModal();
                     break;
-                case 'edit-journal':
-                    this.showJournalModal();
+                case 'edit-journal': {
+                    const todayJournal = await JournalEntry.getOrCreateForDate();
+                    this.showJournalModal(todayJournal);
                     break;
+                }
             }
         });
     }
@@ -404,16 +406,10 @@ export class TodayView extends BaseView {
             title: 'Journal Entry',
             fields,
             onSubmit: async (data) => {
-                if (journal) {
-                    journal.title = data.title;
-                    journal.body = data.body;
-                    await journal.save();
-                } else {
-                    await JournalEntry.create({
-                        date: dateUtils.getLocalDateString(),
-                        ...data
-                    });
-                }
+                const entry = journal || await JournalEntry.getOrCreateForDate();
+                entry.title = data.title;
+                entry.body = data.body;
+                await entry.save();
                 Toast.success('Journal saved!');
                 this.render();
             }
