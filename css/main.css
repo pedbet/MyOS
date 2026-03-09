@@ -772,8 +772,8 @@ main#content {
   align-items: flex-start;
   gap: 8px;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding: 4px 0 8px;
+  overflow-y: visible;
+  padding: 2px 0 8px;
   margin-bottom: 16px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -795,6 +795,13 @@ main#content {
 }
 .filter-chip.active { background: rgba(201,169,110,0.15); border-color: var(--accent); color: var(--accent); }
 
+@supports (-webkit-touch-callout: none) {
+  .filter-row {
+    flex-wrap: wrap;
+    overflow: visible;
+    padding-top: 0;
+  }
+}
 /* ---- Toggle ---- */
 .toggle-completed {
   font-size: 12px;
