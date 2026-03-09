@@ -74,7 +74,7 @@ const HabitsSection = {
 
     if (habits.length === 0) {
       const e = el('div', 'empty-state');
-      e.innerHTML = '<div class="empty-state-icon">🌱</div><p>No habits yet. Add habits to track your daily practices.</p>';
+      e.innerHTML = '<div class="empty-state-icon">&#127793;</div><p>No habits yet. Add habits to track your daily practices.</p>';
       content.appendChild(e);
     } else {
       habits.forEach(h => {
@@ -88,8 +88,8 @@ const HabitsSection = {
             ${!isDue ? `<div class="card-meta" style="margin-top:2px">Starts ${habitFirstDueDate(h)}</div>` : ''}
           </div>
           <div class="habit-btns">
-            <button class="habit-btn ${log?.status === 'SUCCESS' ? 'success' : ''}" ${(!isEditable || !isDue) ? 'disabled' : ''} data-hid="${h.id}" data-status="SUCCESS" title="Success">✓</button>
-            <button class="habit-btn ${log?.status === 'FAIL' ? 'fail' : ''}" ${(!isEditable || !isDue) ? 'disabled' : ''} data-hid="${h.id}" data-status="FAIL" title="Failed">✕</button>
+            <button class="habit-btn ${log?.status === 'SUCCESS' ? 'success' : ''}" ${(!isEditable || !isDue) ? 'disabled' : ''} data-hid="${h.id}" data-status="SUCCESS" title="Success">&#10003;</button>
+            <button class="habit-btn ${log?.status === 'FAIL' ? 'fail' : ''}" ${(!isEditable || !isDue) ? 'disabled' : ''} data-hid="${h.id}" data-status="FAIL" title="Failed">&#10005;</button>
             <button class="habit-btn ${log?.status === 'NA' ? 'na' : ''}" ${(!isEditable || !isDue) ? 'disabled' : ''} data-hid="${h.id}" data-status="NA" title="N/A">-</button>
             <button class="icon-btn" data-action="trend-habit" data-id="${h.id}" title="Trends" style="margin-left:4px;color:var(--text3)">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
@@ -127,10 +127,7 @@ const HabitsSection = {
       }
     }
 
-    const fab = el('button', 'fab', '+');
-    fab.addEventListener('click', () => HabitsSection.showAddModal());
-    document.body.appendChild(fab);
-    content._cleanup = () => fab.remove();
+    content._cleanup = mountFab(() => HabitsSection.showAddModal());
   },
 
   addDays(dateStr, delta) {

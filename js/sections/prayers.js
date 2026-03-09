@@ -23,7 +23,7 @@ const PrayersSection = {
 
     if (prayers.length === 0) {
       const e = el('div', 'empty-state');
-      e.innerHTML = '<div class="empty-state-icon">🙏</div><p>No prayers yet. Add a prayer to track your practice.</p>';
+      e.innerHTML = '<div class="empty-state-icon">&#128591;</div><p>No prayers yet. Add a prayer to track your practice.</p>';
       content.appendChild(e);
     } else {
       prayers.forEach(p => {
@@ -85,10 +85,7 @@ const PrayersSection = {
       });
     }
 
-    const fab = el('button', 'fab', '+');
-    fab.addEventListener('click', () => PrayersSection.showAddModal());
-    document.body.appendChild(fab);
-    content._cleanup = () => fab.remove();
+    content._cleanup = mountFab(() => PrayersSection.showAddModal());
   },
 
   async logPrayer(prayerId, date, existingLog, delta = 1) {

@@ -101,6 +101,17 @@ function el(tag, cls, text) {
   if (text !== undefined) e.textContent = text;
   return e;
 }
+function clearFloatingButtons() {
+  document.querySelectorAll('.fab').forEach(btn => btn.remove());
+}
+
+function mountFab(onClick, label = '+') {
+  clearFloatingButtons();
+  const fab = el('button', 'fab', label);
+  fab.addEventListener('click', onClick);
+  document.body.appendChild(fab);
+  return () => fab.remove();
+}
 
 function showToast(msg, duration = 2500) {
   const container = document.getElementById('toast-container');
@@ -213,4 +224,3 @@ async function initLabelEditor(container, initial = []) {
 
   return { getSelected: () => [...selected] };
 }
-

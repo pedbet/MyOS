@@ -1,5 +1,5 @@
 /* ============================================================
-   tasks.js — Tasks section
+   tasks.js - Tasks section
    ============================================================ */
 
 const TasksSection = {
@@ -33,7 +33,7 @@ const TasksSection = {
 
     if (open.length === 0) {
       const e = el('div', 'empty-state');
-      e.innerHTML = '<div class="empty-state-icon">✓</div><p>No open tasks. Great work!</p>';
+      e.innerHTML = '<div class="empty-state-icon">&#10003;</div><p>No open tasks. Great work!</p>';
       content.appendChild(e);
     } else {
       open.forEach(t => content.appendChild(TasksSection.renderCard(t)));
@@ -41,7 +41,7 @@ const TasksSection = {
 
     // Completed toggle
     const toggleWrap = el('div', 'completed-section');
-    const toggleBtn = el('button', 'toggle-completed', `${this.showCompleted ? '▼' : '▶'} Completed (${done.length})`);
+    const toggleBtn = el('button', 'toggle-completed', `${this.showCompleted ? '\u25BC' : '\u25B6'} Completed (${done.length})`);
     toggleBtn.addEventListener('click', () => {
       this.showCompleted = !this.showCompleted;
       TasksSection.render();
@@ -55,10 +55,7 @@ const TasksSection = {
     }
     content.appendChild(toggleWrap);
 
-    const fab = el('button', 'fab', '+');
-    fab.addEventListener('click', () => TasksSection.showAddModal());
-    document.body.appendChild(fab);
-    content._cleanup = () => fab.remove();
+    content._cleanup = mountFab(() => TasksSection.showAddModal());
   },
 
   renderCard(t, isDone = false) {
@@ -79,7 +76,7 @@ const TasksSection = {
           <div class="checkbox ${isDone ? 'checked' : ''}"></div>
           <div>
             <div class="card-title">${t.title}</div>
-            <div class="card-meta">${metaParts.join(' · ')}</div>
+            <div class="card-meta">${metaParts.join(' &middot; ')}</div>
           </div>
         </div>
         ${!isDone ? `<button class="icon-btn" data-action="edit" data-id="${t.id}" title="Edit">
@@ -120,7 +117,7 @@ const TasksSection = {
     t.updated_at = nowISO();
     await DB.put('tasks', t);
     await logAction('complete', 'tasks', id, before, t);
-    showToast('Task completed ✓');
+    showToast('Task completed \u2713');
     syncAll();
   },
 

@@ -47,7 +47,7 @@ const CheckinsSection = {
 
     if (checkins.length === 0) {
       const e = el('div', 'empty-state');
-      e.innerHTML = '<div class="empty-state-icon">✓</div><p>No check-ins yet. Add one to track periodic activities.</p>';
+      e.innerHTML = '<div class="empty-state-icon">&#10003;</div><p>No check-ins yet. Add one to track periodic activities.</p>';
       content.appendChild(e);
     } else {
       checkins.forEach(c => {
@@ -55,10 +55,7 @@ const CheckinsSection = {
       });
     }
 
-    const fab = el('button', 'fab', '+');
-    fab.addEventListener('click', () => CheckinsSection.showAddModal());
-    document.body.appendChild(fab);
-    content._cleanup = () => fab.remove();
+    content._cleanup = mountFab(() => CheckinsSection.showAddModal());
   },
 
   renderCard(c) {
@@ -72,8 +69,8 @@ const CheckinsSection = {
         <span class="badge badge-${s}">${s.toUpperCase()}</span>
       </div>
       <div class="card-meta">
-        Every ${c.frequency_value} ${c.frequency_unit}${c.frequency_value > 1 ? 's' : ''} ·
-        Last: ${c.last_checkin_at ? formatRelative(c.last_checkin_at) : 'never'} ·
+        Every ${c.frequency_value} ${c.frequency_unit}${c.frequency_value > 1 ? 's' : ''} &middot;
+        Last: ${c.last_checkin_at ? formatRelative(c.last_checkin_at) : 'never'} &middot;
         Due: ${formatDate(nextDue.toISOString())}
       </div>
       ${c.labels?.length ? `<div class="labels-wrap" style="margin-top:6px">${c.labels.map(l => `<span class="label-chip">${l}</span>`).join('')}</div>` : ''}
