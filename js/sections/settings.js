@@ -1,5 +1,5 @@
 /* ============================================================
-   settings.js — Settings section
+   settings.js - Settings section
    ============================================================ */
 
 const SettingsSection = {
@@ -37,7 +37,7 @@ const SettingsSection = {
       <div class="settings-section-title">Sync & Data</div>
       <div class="settings-row">
         <span class="settings-label">Supabase URL</span>
-        <span class="settings-value">${sbUrl.length > 30 ? sbUrl.slice(0, 30) + '…' : sbUrl}</span>
+        <span class="settings-value">${sbUrl.length > 30 ? sbUrl.slice(0, 30) + '...' : sbUrl}</span>
       </div>
       <div class="settings-row">
         <span class="settings-label">Last synced</span>
@@ -105,7 +105,7 @@ const SettingsSection = {
       </div>
       <div class="settings-row">
         <span class="settings-label">Storage</span>
-        <span class="settings-value">IndexedDB (offline-first)</span>
+        <span class="settings-value">Supabase + IndexedDB cache</span>
       </div>
     `;
     content.appendChild(aboutSec);
@@ -150,3 +150,4 @@ const SettingsSection = {
     showToast('Data exported');
   }
 };
+

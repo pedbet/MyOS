@@ -1,5 +1,5 @@
 /* ============================================================
-   utils.js — Shared utilities
+   utils.js - Shared utilities
    ============================================================ */
 
 function uuid() {
@@ -37,6 +37,21 @@ function formatRelative(iso) {
 
 function daysOpen(createdAt) {
   return Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000);
+}
+
+function toLocalDateStringFromISO(iso) {
+  if (!iso) return localDate();
+  return new Date(iso).toISOString().split('T')[0];
+}
+
+function habitFirstDueDate(habit) {
+  if (habit.first_due_date) return habit.first_due_date;
+  if (habit.created_at) return toLocalDateStringFromISO(habit.created_at);
+  return localDate();
+}
+
+function isHabitDueOnDate(habit, dateStr) {
+  return dateStr >= habitFirstDueDate(habit);
 }
 
 // Calendar-aware date addition for check-in frequency
@@ -198,3 +213,4 @@ async function initLabelEditor(container, initial = []) {
 
   return { getSelected: () => [...selected] };
 }
+

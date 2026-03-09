@@ -1,5 +1,5 @@
 /* ============================================================
-   checkins.js — Check-ins section
+   checkins.js - Check-ins section
    ============================================================ */
 
 const CheckinsSection = {
@@ -19,11 +19,13 @@ const CheckinsSection = {
     `;
     content.appendChild(header);
 
-    // Filter row
     const filterRow = el('div', 'filter-row');
-    ['all','red','yellow','green'].forEach(f => {
+    ['all', 'red', 'yellow', 'green'].forEach(f => {
       const chip = el('div', 'filter-chip' + (this.filter === f ? ' active' : ''), f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1));
-      chip.addEventListener('click', () => { this.filter = f; this.render(); });
+      chip.addEventListener('click', () => {
+        this.filter = f;
+        this.render();
+      });
       filterRow.appendChild(chip);
     });
     content.appendChild(filterRow);
@@ -33,10 +35,10 @@ const CheckinsSection = {
       checkins = checkins.filter(c => checkinStatus(c) === this.filter);
     }
 
-    // Sort: red > yellow > green, then by time since anchor
     checkins.sort((a, b) => {
       const order = { red: 0, yellow: 1, green: 2 };
-      const sa = checkinStatus(a), sb = checkinStatus(b);
+      const sa = checkinStatus(a);
+      const sb = checkinStatus(b);
       if (order[sa] !== order[sb]) return order[sa] - order[sb];
       const anchorA = new Date(a.last_checkin_at || a.first_due_at || a.created_at);
       const anchorB = new Date(b.last_checkin_at || b.first_due_at || b.created_at);
@@ -53,7 +55,6 @@ const CheckinsSection = {
       });
     }
 
-    // FAB
     const fab = el('button', 'fab', '+');
     fab.addEventListener('click', () => CheckinsSection.showAddModal());
     document.body.appendChild(fab);
@@ -63,7 +64,6 @@ const CheckinsSection = {
   renderCard(c) {
     const s = checkinStatus(c);
     const nextDue = checkinNextDue(c);
-    const anchor = c.last_checkin_at || c.first_due_at || c.created_at;
     const card = el('div', 'card');
     card.innerHTML = `
       <div class="card-row">
@@ -100,7 +100,7 @@ const CheckinsSection = {
     await DB.put('checkins', c);
     await logAction('checkin', 'checkins', id, before, c);
     showToast(`Checked in: ${c.title}`);
-    syncAll();
+    syncAll({ forcePull: false });
   },
 
   showAddModal(onDone) {
@@ -108,6 +108,7 @@ const CheckinsSection = {
       <div class="modal-handle"></div>
       <div class="modal-title">New Check-in</div>
       <div class="form-row"><label>Title</label><input type="text" id="ci-title" placeholder="e.g. Call Grandma" /></div>
+      <div class="form-row"><label>First due date (optional)</label><input type="date" id="ci-first-due" value="${localDate()}" /></div>
       <div class="form-row"><label>Frequency</label>
         <div class="form-inline">
           <input type="number" id="ci-freq-val" value="1" min="1" />
@@ -138,53 +139,61 @@ const CheckinsSection = {
     document.getElementById('ci-cancel').addEventListener('click', closeModal);
     document.getElementById('ci-save').addEventListener('click', async () => {
       const title = document.getElementById('ci-title').value.trim();
-      if (!title) { showToast('Title required'); return; }
+      if (!title) {
+        showToast('Title required');
+        return;
+      }
+      const firstDue = document.getElementById('ci-first-due').value || localDate();
       const obj = {
         id: uuid(),
         title,
-        frequency_value: parseInt(document.getElementById('ci-freq-val').value) || 1,
+        frequency_value: parseInt(document.getElementById('ci-freq-val').value, 10) || 1,
         frequency_unit: document.getElementById('ci-freq-unit').value,
-        yellow_value: parseInt(document.getElementById('ci-yellow-val').value) || 1,
+        yellow_value: parseInt(document.getElementById('ci-yellow-val').value, 10) || 1,
         yellow_unit: document.getElementById('ci-yellow-unit').value,
-        red_value: parseInt(document.getElementById('ci-red-val').value) || 3,
+        red_value: parseInt(document.getElementById('ci-red-val').value, 10) || 3,
         red_unit: document.getElementById('ci-red-unit').value,
-        first_due_at: nowISO(),
+        first_due_at: new Date(`${firstDue}T12:00:00`).toISOString(),
         last_checkin_at: null,
         labels: labelEditor ? labelEditor.getSelected() : [],
-        created_at: nowISO(), updated_at: nowISO(), deleted_at: null
+        created_at: nowISO(),
+        updated_at: nowISO(),
+        deleted_at: null
       };
       await DB.put('checkins', obj);
       await logAction('create', 'checkins', obj.id, null, obj);
       closeModal();
       showToast('Check-in added');
       if (onDone) onDone(); else CheckinsSection.render();
-      syncAll();
+      syncAll({ forcePull: false });
     });
   },
 
   showEditModal(c) {
+    const firstDueVal = c.first_due_at ? new Date(c.first_due_at).toISOString().split('T')[0] : localDate();
     const html = `
       <div class="modal-handle"></div>
       <div class="modal-title">Edit Check-in</div>
       <div class="form-row"><label>Title</label><input type="text" id="ci-title" value="${c.title}" /></div>
+      <div class="form-row"><label>First due date</label><input type="date" id="ci-first-due" value="${firstDueVal}" /></div>
       <div class="form-row"><label>Frequency</label>
         <div class="form-inline">
           <input type="number" id="ci-freq-val" value="${c.frequency_value}" min="1" />
           <select id="ci-freq-unit">
-            ${['day','week','month','year'].map(u => `<option value="${u}" ${c.frequency_unit===u?'selected':''}>${u.charAt(0).toUpperCase()+u.slice(1)}(s)</option>`).join('')}
+            ${['day', 'week', 'month', 'year'].map(u => `<option value="${u}" ${c.frequency_unit === u ? 'selected' : ''}>${u.charAt(0).toUpperCase() + u.slice(1)}(s)</option>`).join('')}
           </select>
         </div>
       </div>
       <div class="form-row"><label>Yellow after due +</label>
         <div class="form-inline">
           <input type="number" id="ci-yellow-val" value="${c.yellow_value}" min="0" />
-          <select id="ci-yellow-unit">${['day','week'].map(u=>`<option value="${u}" ${c.yellow_unit===u?'selected':''}>${u}(s)</option>`).join('')}</select>
+          <select id="ci-yellow-unit">${['day', 'week'].map(u => `<option value="${u}" ${c.yellow_unit === u ? 'selected' : ''}>${u}(s)</option>`).join('')}</select>
         </div>
       </div>
       <div class="form-row"><label>Red after due +</label>
         <div class="form-inline">
           <input type="number" id="ci-red-val" value="${c.red_value}" min="0" />
-          <select id="ci-red-unit">${['day','week'].map(u=>`<option value="${u}" ${c.red_unit===u?'selected':''}>${u}(s)</option>`).join('')}</select>
+          <select id="ci-red-unit">${['day', 'week'].map(u => `<option value="${u}" ${c.red_unit === u ? 'selected' : ''}>${u}(s)</option>`).join('')}</select>
         </div>
       </div>
       <div class="form-row"><label>Labels</label>${labelsHTML()}</div>
@@ -200,12 +209,13 @@ const CheckinsSection = {
     document.getElementById('ci-save').addEventListener('click', async () => {
       const before = { ...c };
       c.title = document.getElementById('ci-title').value.trim();
-      c.frequency_value = parseInt(document.getElementById('ci-freq-val').value) || 1;
+      c.frequency_value = parseInt(document.getElementById('ci-freq-val').value, 10) || 1;
       c.frequency_unit = document.getElementById('ci-freq-unit').value;
-      c.yellow_value = parseInt(document.getElementById('ci-yellow-val').value) || 1;
+      c.yellow_value = parseInt(document.getElementById('ci-yellow-val').value, 10) || 1;
       c.yellow_unit = document.getElementById('ci-yellow-unit').value;
-      c.red_value = parseInt(document.getElementById('ci-red-val').value) || 3;
+      c.red_value = parseInt(document.getElementById('ci-red-val').value, 10) || 3;
       c.red_unit = document.getElementById('ci-red-unit').value;
+      c.first_due_at = new Date(`${document.getElementById('ci-first-due').value || localDate()}T12:00:00`).toISOString();
       c.labels = labelEditor ? labelEditor.getSelected() : c.labels;
       c.updated_at = nowISO();
       await DB.put('checkins', c);
@@ -213,7 +223,7 @@ const CheckinsSection = {
       closeModal();
       showToast('Updated');
       CheckinsSection.render();
-      syncAll();
+      syncAll({ forcePull: false });
     });
   },
 
@@ -229,6 +239,6 @@ const CheckinsSection = {
       c.updated_at = nowISO();
       await DB.put('checkins', c);
     });
-    syncAll();
+    syncAll({ forcePull: false });
   }
 };

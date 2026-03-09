@@ -1,5 +1,5 @@
 -- ============================================================
--- MyOS — Supabase Database Schema
+-- MyOS - Supabase Database Schema
 -- Run this in the Supabase SQL editor to set up your database.
 -- ============================================================
 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS checkins (
   yellow_unit TEXT NOT NULL DEFAULT 'day',
   red_value INTEGER NOT NULL DEFAULT 3,
   red_unit TEXT NOT NULL DEFAULT 'day',
-  first_due_at TIMESTAMPTZ,
+  first_due_at TIMESTAMPTZ DEFAULT NOW(),
   last_checkin_at TIMESTAMPTZ,
   labels TEXT[] DEFAULT '{}',
   created_at TIMESTAMPTZ,
@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS habits (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
+  first_due_date TEXT DEFAULT (CURRENT_DATE::TEXT),
   labels TEXT[] DEFAULT '{}',
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ,
@@ -101,13 +102,40 @@ CREATE TABLE IF NOT EXISTS prayer_logs (
 -- 9. JOURNAL ENTRIES
 CREATE TABLE IF NOT EXISTS journal_entries (
   id TEXT PRIMARY KEY,
-  date TEXT NOT NULL UNIQUE,
+  date TEXT NOT NULL,
   title TEXT,
   body TEXT,
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ,
   deleted_at TIMESTAMPTZ
 );
+
+-- ============================================================
+-- MIGRATION HELPERS (safe to run on existing projects)
+-- ============================================================
+
+ALTER TABLE habits
+  ADD COLUMN IF NOT EXISTS first_due_date TEXT;
+
+ALTER TABLE habits
+  ALTER COLUMN first_due_date SET DEFAULT (CURRENT_DATE::TEXT);
+
+UPDATE habits
+SET first_due_date = COALESCE(first_due_date, COALESCE((created_at AT TIME ZONE 'UTC')::DATE::TEXT, CURRENT_DATE::TEXT));
+
+ALTER TABLE checkins
+  ALTER COLUMN first_due_at SET DEFAULT NOW();
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'journal_entries_date_key'
+  ) THEN
+    ALTER TABLE journal_entries DROP CONSTRAINT journal_entries_date_key;
+  END IF;
+END $$;
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -133,35 +161,27 @@ RETURNS BOOLEAN AS $$
 $$ LANGUAGE sql SECURITY DEFINER;
 
 -- RLS Policies for each table
--- Labels
 CREATE POLICY "allowed_users_labels" ON labels
   FOR ALL USING (is_allowed_user());
 
--- Check-ins
 CREATE POLICY "allowed_users_checkins" ON checkins
   FOR ALL USING (is_allowed_user());
 
--- Tasks
 CREATE POLICY "allowed_users_tasks" ON tasks
   FOR ALL USING (is_allowed_user());
 
--- Habits
 CREATE POLICY "allowed_users_habits" ON habits
   FOR ALL USING (is_allowed_user());
 
--- Habit logs
 CREATE POLICY "allowed_users_habit_logs" ON habit_logs
   FOR ALL USING (is_allowed_user());
 
--- Prayers
 CREATE POLICY "allowed_users_prayers" ON prayers
   FOR ALL USING (is_allowed_user());
 
--- Prayer logs
 CREATE POLICY "allowed_users_prayer_logs" ON prayer_logs
   FOR ALL USING (is_allowed_user());
 
--- Journal entries
 CREATE POLICY "allowed_users_journal" ON journal_entries
   FOR ALL USING (is_allowed_user());
 

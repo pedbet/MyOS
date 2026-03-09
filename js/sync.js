@@ -1,93 +1,90 @@
 /* ============================================================
-   sync.js — Supabase sync (eventual consistency, last-write-wins)
+   sync.js - Sync orchestrator (remote-first cache refresh + offline queue flush)
    ============================================================ */
-
-const SYNC_STORES = [
-  'checkins', 'tasks', 'habits', 'habit_logs',
-  'prayers', 'prayer_logs', 'journal_entries', 'labels'
-];
-
-const SUPABASE_TABLES = {
-  checkins: 'checkins',
-  tasks: 'tasks',
-  habits: 'habits',
-  habit_logs: 'habit_logs',
-  prayers: 'prayers',
-  prayer_logs: 'prayer_logs',
-  journal_entries: 'journal_entries',
-  labels: 'labels'
-};
 
 let lastSyncAt = null;
 let isSyncing = false;
 
-async function syncAll() {
-  if (isSyncing) return;
+async function syncAll(options = {}) {
+  const { forcePull = true } = options;
+  if (isSyncing) return false;
+
   const sb = await getSupabase();
-  if (!sb) return;
+  if (!sb) {
+    setSyncStatus('error', 'Supabase not configured');
+    return false;
+  }
+
   const user = await getCurrentUser();
-  if (!user) return;
+  if (!user) {
+    setSyncStatus('error', 'Not signed in');
+    return false;
+  }
 
   isSyncing = true;
   setSyncStatus('syncing');
 
   try {
-    for (const store of SYNC_STORES) {
-      await syncStore(sb, store);
-    }
+    await DB.flushPendingWrites();
+    await DB.pullAllRemote({ force: forcePull });
+
     lastSyncAt = new Date();
     await DB.setConfig('last_sync', lastSyncAt.toISOString());
-    setSyncStatus('ok');
+
+    const pending = await DB.getPendingWriteCount();
+    setSyncStatus('ok', pending > 0 ? `${pending} queued` : '');
+    return true;
   } catch (err) {
     console.error('Sync error:', err);
-    setSyncStatus('error', err.message);
+    setSyncStatus('error', err.message || 'Unknown sync error');
+    return false;
   } finally {
     isSyncing = false;
   }
 }
 
-async function syncStore(sb, store) {
-  const table = SUPABASE_TABLES[store];
-  const local = await DB.getAll(store);
-
-  // Push local → remote (upsert)
-  if (local.length > 0) {
-    const { error } = await sb.from(table).upsert(local, { onConflict: 'id' });
-    if (error) throw error;
-  }
-
-  // Pull remote → local
-  const { data: remote, error: pullErr } = await sb.from(table).select('*');
-  if (pullErr) throw pullErr;
-
-  for (const row of (remote || [])) {
-    const localRow = local.find(r => r.id === row.id);
-    if (!localRow || new Date(row.updated_at) > new Date(localRow.updated_at || 0)) {
-      await DB.put(store, row);
-    }
-  }
-}
-
-function setSyncStatus(status, msg) {
+function setSyncStatus(status, msg = '') {
   const el = document.getElementById('sync-status');
   if (!el) return;
+
   el.className = 'sync-status ' + status;
-  if (status === 'syncing') el.textContent = 'Syncing...';
-  else if (status === 'ok') el.textContent = `Synced ${formatRelative(lastSyncAt?.toISOString())}`;
-  else if (status === 'error') el.textContent = 'Sync error';
+  if (status === 'syncing') {
+    el.textContent = 'Syncing...';
+    return;
+  }
+  if (status === 'ok') {
+    const base = `Synced ${formatRelative(lastSyncAt?.toISOString())}`;
+    el.textContent = msg ? `${base} (${msg})` : base;
+    return;
+  }
+  el.textContent = msg ? `Sync error: ${msg}` : 'Sync error';
 }
 
-// Sync button
-document.getElementById('sync-btn').addEventListener('click', async () => {
-  const icon = document.querySelector('#sync-btn svg');
-  icon.classList.add('spin');
-  await syncAll();
-  icon.classList.remove('spin');
-  showToast('Sync complete');
+async function hydrateSyncStateFromConfig() {
+  const saved = await DB.getConfig('last_sync');
+  if (saved) {
+    lastSyncAt = new Date(saved);
+    setSyncStatus('ok');
+  }
+}
+
+const syncBtn = document.getElementById('sync-btn');
+if (syncBtn) {
+  syncBtn.addEventListener('click', async () => {
+    const icon = document.querySelector('#sync-btn svg');
+    if (icon) icon.classList.add('spin');
+    const ok = await syncAll({ forcePull: true });
+    if (icon) icon.classList.remove('spin');
+    showToast(ok ? 'Sync complete' : 'Sync failed');
+  });
+}
+
+window.addEventListener('online', () => {
+  syncAll({ forcePull: true });
 });
 
-// Online reconnect sync
-window.addEventListener('online', () => syncAll());
+setInterval(() => {
+  syncAll({ forcePull: true });
+}, 5 * 60 * 1000);
 
-// Periodic sync every 5 minutes
-setInterval(() => syncAll(), 5 * 60 * 1000);
+hydrateSyncStateFromConfig();

@@ -1,5 +1,5 @@
 /* ============================================================
-   app.js — Main app controller and router
+   app.js - Main app controller and router
    ============================================================ */
 
 const SECTIONS = {
@@ -20,43 +20,46 @@ const App = {
     if (!authed) return;
 
     showScreen('main');
+
+    // Remote-first startup: pull from Supabase before first render.
+    await syncAll({ forcePull: true });
     App.navigate('today');
 
-    // Wire up nav
     document.querySelectorAll('.nav-item').forEach(btn => {
       btn.addEventListener('click', () => {
         App.navigate(btn.dataset.section);
       });
     });
 
-    // Wire up "All →" links in today
     document.getElementById('content').addEventListener('click', (e) => {
       const nav = e.target.closest('[data-nav]');
-      if (nav) { e.preventDefault(); App.navigate(nav.dataset.nav); }
+      if (nav) {
+        e.preventDefault();
+        App.navigate(nav.dataset.nav);
+      }
     });
 
-    // Start sync
-    syncAll();
+    // Keep local cache warm when app regains focus.
+    window.addEventListener('focus', () => syncAll({ forcePull: true }));
   },
 
   navigate(section) {
     if (!SECTIONS[section]) return;
 
-    // Clean up previous section (e.g. remove FAB)
     const content = document.getElementById('content');
-    if (content._cleanup) { content._cleanup(); content._cleanup = null; }
+    if (content._cleanup) {
+      content._cleanup();
+      content._cleanup = null;
+    }
 
     App.currentSection = section;
 
-    // Update nav active state
     document.querySelectorAll('.nav-item').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.section === section);
     });
 
-    // Update topbar title
     document.getElementById('topbar-title').textContent = SECTIONS[section].title;
-
-    // Render section
+    content.scrollTop = 0;
     SECTIONS[section].render();
   },
 
@@ -65,7 +68,6 @@ const App = {
   }
 };
 
-// Service worker registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(err => {
@@ -74,5 +76,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Boot
 App.init();
