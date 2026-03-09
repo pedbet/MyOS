@@ -23,6 +23,7 @@
   --radius-sm: 6px;
   --nav-h: 68px;
   --top-h: 52px;
+  --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -179,15 +180,14 @@ select { appearance: none; cursor: pointer; }
 
 /* ---- Top bar ---- */
 .topbar {
-  height: var(--top-h);
+  height: calc(var(--top-h) + var(--safe-top));
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 0 16px;
+  padding: var(--safe-top) 16px 0;
   flex-shrink: 0;
-  padding-top: env(safe-area-inset-top, 0px);
 }
 .topbar-logo {
   font-family: 'DM Serif Display', serif;
@@ -252,9 +252,7 @@ main#content {
 /* ---- Section layouts ---- */
 .section-page {
   padding: 20px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: block;
 }
 
 .section-header {
@@ -771,16 +769,20 @@ main#content {
 /* ---- Filter row ---- */
 .filter-row {
   display: flex;
+  align-items: flex-start;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  overflow-y: hidden;
+  padding: 4px 0 8px;
   margin-bottom: 16px;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .filter-row::-webkit-scrollbar { display: none; }
 .filter-chip {
   flex-shrink: 0;
   font-size: 12px;
+  line-height: 1.2;
   font-family: 'DM Mono', monospace;
   background: var(--bg3);
   border: 1px solid var(--border2);
