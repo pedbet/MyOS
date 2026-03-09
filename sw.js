@@ -1,8 +1,8 @@
 /* ============================================================
-   sw.js — Service Worker (app shell caching)
+   sw.js - Service Worker (app shell caching)
    ============================================================ */
 
-const CACHE_NAME = 'myos-v1';
+const CACHE_NAME = 'myos-v2';
 const SHELL_ASSETS = [
   './',
   './index.html',

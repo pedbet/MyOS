@@ -13,7 +13,7 @@ const SECTIONS = {
 };
 
 const App = {
-  currentSection: 'today',
+  currentSection: null,
 
   async init() {
     const authed = await checkAuth();
@@ -23,7 +23,7 @@ const App = {
 
     // Remote-first startup: pull from Supabase before first render.
     await syncAll({ forcePull: true });
-    App.navigate('today');
+    App.navigate('today', { force: true });
 
     document.querySelectorAll('.nav-item').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -43,8 +43,10 @@ const App = {
     window.addEventListener('focus', () => syncAll({ forcePull: true }));
   },
 
-  navigate(section) {
+  navigate(section, options = {}) {
+    const { force = false, preserveScroll = false } = options;
     if (!SECTIONS[section]) return;
+    if (!force && App.currentSection === section) return;
 
     const content = document.getElementById('content');
     if (content._cleanup) {
@@ -59,12 +61,13 @@ const App = {
     });
 
     document.getElementById('topbar-title').textContent = SECTIONS[section].title;
-    content.scrollTop = 0;
+    if (!preserveScroll) content.scrollTop = 0;
     SECTIONS[section].render();
   },
 
   refresh() {
-    App.navigate(App.currentSection);
+    if (!App.currentSection) return;
+    App.navigate(App.currentSection, { force: true, preserveScroll: true });
   }
 };
 
